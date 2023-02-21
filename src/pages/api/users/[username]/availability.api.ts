@@ -64,7 +64,7 @@ export default async function handle(
       date: true,
     },
     where: {
-      userId: user.id,
+      user_id: user.id,
       date: {
         gte: referenceDate.set('hour', startHour).toDate(),
         lte: referenceDate.set('hour', endHour).toDate(),
@@ -72,10 +72,15 @@ export default async function handle(
     },
   })
 
-  const availableTimes = possibleTimes.filter(
-    (time) =>
-      !blockedTimes.some((blockedTime) => blockedTime.date.getHours() === time),
-  )
+  const availableTimes = possibleTimes.filter((time) => {
+    const isTimeBlocked = !blockedTimes.some(
+      (blockedTime) => blockedTime.date.getHours() === time,
+    )
+
+    const isTimeInPast = referenceDate.set('hour', time).isBefore(new Date())
+
+    return !isTimeBlocked && !isTimeInPast
+  })
 
   return res.json({ possibleTimes, availableTimes })
 }
